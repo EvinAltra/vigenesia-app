@@ -1,10 +1,10 @@
+import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/gestures.dart';
-import 'MainScreen.dart';
+import 'package:org/Screens/MainScreen.dart';
 import 'Register.dart';
-import 'package:another_flushbar/flushbar.dart';
+import 'package:flutter/gestures.dart';
 import '/../Models/Login_Model.dart';
 
 class Login extends StatefulWidget {
@@ -15,14 +15,15 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  String? nama;
   final GlobalKey<FormBuilderState> _fbKey = GlobalKey<FormBuilderState>();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  bool _obscurePassword = true; // Variable to manage password visibility
 
   Future<LoginModels?> postLogin(String email, String password) async {
     var dio = Dio();
-    String baseurl = "https://4ef1-110-138-88-118.ngrok-free.app/vigenesia";
+    String baseurl =
+        "http://127.0.0.1/vigenesia"; // Update with your backend address
 
     Map<String, dynamic> data = {"email": email, "password": password};
 
@@ -31,24 +32,17 @@ class _LoginState extends State<Login> {
           data: data,
           options: Options(headers: {'Content-type': 'application/json'}));
 
-      print(
-          "Response -> ${response.data} + Status Code: ${response.statusCode}");
+      print("Response -> ${response.data} + ${response.statusCode}");
 
       if (response.statusCode == 200) {
-        // Periksa format respons sebelum diubah menjadi model
-        if (response.data is Map<String, dynamic>) {
-          return LoginModels.fromJson(response.data);
-        } else {
-          print("Invalid response format");
-          return null;
-        }
+        final loginModel = LoginModels.fromJson(response.data);
+        return loginModel;
       } else {
-        print("Login failed with status: ${response.statusCode}");
-        return null;
+        throw Exception('Failed to login');
       }
     } catch (e) {
-      print("Failed to load: $e");
-      return null;
+      print("Failed To Load: $e");
+      return null; // Return null to indicate failure
     }
   }
 
@@ -58,88 +52,129 @@ class _LoginState extends State<Login> {
       body: SingleChildScrollView(
         child: SafeArea(
           child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.blueAccent, Colors.lightBlueAccent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
             height: MediaQuery.of(context).size.height,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Security System - Login",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
+                  "Security System",
+                  style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "Login to continue",
+                  style: TextStyle(fontSize: 18, color: Colors.white70),
                 ),
                 SizedBox(height: 50),
                 Center(
-                  child: Form(
-                    key: _fbKey,
+                  child: Card(
+                    elevation: 8,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     child: Container(
+                      padding: EdgeInsets.all(20),
                       width: MediaQuery.of(context).size.width / 1.3,
-                      child: Column(
-                        children: [
-                          FormBuilderTextField(
-                            name: "email",
-                            controller: emailController,
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.only(left: 10),
-                              border: OutlineInputBorder(),
-                              labelText: "Email",
-                            ),
-                          ),
-                          SizedBox(height: 20),
-                          FormBuilderTextField(
-                            obscureText: true,
-                            name: "password",
-                            controller: passwordController,
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.only(left: 10),
-                              border: OutlineInputBorder(),
-                              labelText: "Password",
-                            ),
-                          ),
-                          SizedBox(height: 30),
-                          Text.rich(
-                            TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: 'Don\'t Have an Account? ',
-                                  style: TextStyle(color: Colors.black54),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: FormBuilder(
+                        key: _fbKey,
+                        child: Column(
+                          children: [
+                            FormBuilderTextField(
+                              name: "email",
+                              controller: emailController,
+                              decoration: InputDecoration(
+                                prefixIcon: Icon(Icons.email),
+                                labelText: "Email",
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                TextSpan(
-                                  text: 'Sign Up',
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () {
-                                      Navigator.push(
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                            FormBuilderTextField(
+                              obscureText:
+                                  _obscurePassword, // Toggle visibility
+                              name: "password",
+                              controller: passwordController,
+                              decoration: InputDecoration(
+                                prefixIcon: Icon(Icons.lock),
+                                labelText: "Password",
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword =
+                                          !_obscurePassword; // Toggle the password visibility
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 30),
+                            Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'Don\'t Have an Account? ',
+                                    style: TextStyle(color: Colors.black54),
+                                  ),
+                                  TextSpan(
+                                    text: 'Sign Up',
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder:
+                                                    (BuildContext context) =>
+                                                        Register()));
+                                      },
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.blueAccent,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 40),
+                            Container(
+                              width: MediaQuery.of(context).size.width,
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  String email = emailController.text;
+                                  String password = passwordController.text;
+                                  final loginModel =
+                                      await postLogin(email, password);
+
+                                  if (loginModel != null) {
+                                    Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => Register(),
-                                        ),
-                                      );
-                                    },
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.blueAccent,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 40),
-                          Container(
-                            width: MediaQuery.of(context).size.width,
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                await postLogin(emailController.text,
-                                        passwordController.text)
-                                    .then((value) {
-                                  if (value != null) {
-                                    setState(() {
-                                      nama = value.data?.nama;
-                                    });
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (BuildContext context) =>
-                                            MainScreens(nama: nama!),
-                                      ),
-                                    );
+                                            builder: (BuildContext context) =>
+                                                MainScreens(
+                                                    nama: loginModel
+                                                        .data?.nama)));
                                   } else {
                                     Flushbar(
                                       message: "Check Your Email / Password",
@@ -148,16 +183,23 @@ class _LoginState extends State<Login> {
                                       flushbarPosition: FlushbarPosition.TOP,
                                     ).show(context);
                                   }
-                                });
-                              },
-                              child: Text("Sign In"),
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(vertical: 15),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: Text("Sign In",
+                                    style: TextStyle(fontSize: 18)),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
+                )
               ],
             ),
           ),

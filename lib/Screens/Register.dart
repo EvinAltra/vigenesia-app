@@ -1,3 +1,4 @@
+import '/../Constant/const.dart';
 import 'package:flutter/material.dart';
 import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -11,11 +12,15 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
-  String baseurl = "https://4ef1-110-138-88-118.ngrok-free.app/vigenesia";
+  // Ganti Base URL
+
+  String baseurl =
+      "https://261e-103-175-225-47.ngrok-free.app/vigenesia"; // ganti dengan ip address kamu / tempat kamu menyimpan backend
 
   Future postRegister(
       String nama, String profesi, String email, String password) async {
     var dio = Dio();
+
     dynamic data = {
       "nama": nama,
       "profesi": profesi,
@@ -24,28 +29,17 @@ class _RegisterState extends State<Register> {
     };
 
     try {
-      final response = await dio.post(
-        "$baseurl/api/registrasi",
-        data: data,
-        options: Options(headers: {'Content-Type': 'application/json'}),
-      );
+      final response = await dio.post("$baseurl/api/registrasi/",
+          data: data,
+          options: Options(headers: {'Content-type': 'application/json'}));
 
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        print("Registrasi berhasil: ${response.data}");
+      print("Respon -> ${response.data} + ${response.statusCode}");
+
+      if (response.statusCode == 200) {
         return response.data;
-      } else {
-        print("Registrasi gagal dengan status: ${response.statusCode}");
-        return null;
       }
-    } on DioError catch (e) {
-      if (e.response != null) {
-        // Server returned a response with an error code
-        print("Server Error: ${e.response?.statusCode} - ${e.response?.data}");
-      } else {
-        // No response from server (e.g., no internet or timeout)
-        print("Failed To Load: ${e.message}");
-      }
-      return null;
+    } catch (e) {
+      print("Failed To Load $e");
     }
   }
 
@@ -53,7 +47,6 @@ class _RegisterState extends State<Register> {
   TextEditingController profesiController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,86 +68,82 @@ class _RegisterState extends State<Register> {
                     name: "name",
                     controller: nameController,
                     decoration: InputDecoration(
-                      contentPadding: EdgeInsets.only(left: 10),
-                      border: OutlineInputBorder(),
-                      labelText: "Nama",
-                    ),
+                        contentPadding: EdgeInsets.only(left: 10),
+                        border: OutlineInputBorder(),
+                        labelText: "Nama"),
                   ),
                   SizedBox(height: 20),
                   FormBuilderTextField(
                     name: "profesi",
                     controller: profesiController,
                     decoration: InputDecoration(
-                      contentPadding: EdgeInsets.only(left: 10),
-                      border: OutlineInputBorder(),
-                      labelText: "Profesi",
-                    ),
+                        contentPadding: EdgeInsets.only(left: 10),
+                        border: OutlineInputBorder(),
+                        labelText: "Profesi"),
                   ),
                   SizedBox(height: 20),
                   FormBuilderTextField(
                     name: "email",
                     controller: emailController,
                     decoration: InputDecoration(
-                      contentPadding: EdgeInsets.only(left: 10),
-                      border: OutlineInputBorder(),
-                      labelText: "Email",
-                    ),
+                        contentPadding: EdgeInsets.only(left: 10),
+                        border: OutlineInputBorder(),
+                        labelText: "Email"),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(
+                    height: 20,
+                  ),
                   FormBuilderTextField(
-                    obscureText: true,
+                    obscureText:
+                        true, // <-- Buat bikin setiap inputan jadi bintang " * "
                     name: "password",
                     controller: passwordController,
+
                     decoration: InputDecoration(
-                      contentPadding: EdgeInsets.only(left: 10),
-                      border: OutlineInputBorder(),
-                      labelText: "Password",
-                    ),
+                        contentPadding: EdgeInsets.only(left: 10),
+                        border: OutlineInputBorder(),
+                        labelText: "Password"),
                   ),
-                  SizedBox(height: 30),
+                  SizedBox(
+                    height: 30,
+                  ),
                   Container(
                     width: MediaQuery.of(context).size.width,
                     child: ElevatedButton(
-                      onPressed: () async {
-                        if (nameController.text.isNotEmpty &&
-                            profesiController.text.isNotEmpty &&
-                            emailController.text.isNotEmpty &&
-                            passwordController.text.isNotEmpty) {
-                          var result = await postRegister(
-                            nameController.text,
-                            profesiController.text,
-                            emailController.text,
-                            passwordController.text,
-                          );
-
-                          if (result != null) {
-                            Navigator.pop(context);
-                            Flushbar(
-                              message: "Berhasil Registrasi",
-                              duration: Duration(seconds: 2),
-                              backgroundColor: Colors.greenAccent,
-                              flushbarPosition: FlushbarPosition.TOP,
-                            ).show(context);
-                          } else {
-                            Flushbar(
-                              message:
-                                  "Registrasi gagal. Cek kembali inputan Anda.",
-                              duration: Duration(seconds: 5),
-                              backgroundColor: Colors.redAccent,
-                              flushbarPosition: FlushbarPosition.TOP,
-                            ).show(context);
-                          }
-                        } else {
-                          Flushbar(
-                            message: "Lengkapi semua field sebelum mendaftar.",
-                            duration: Duration(seconds: 5),
-                            backgroundColor: Colors.orangeAccent,
-                            flushbarPosition: FlushbarPosition.TOP,
-                          ).show(context);
-                        }
-                      },
-                      child: Text("Daftar"),
-                    ),
+                        onPressed: () async {
+                          await postRegister(
+                                  nameController.text,
+                                  profesiController.text,
+                                  emailController.text,
+                                  passwordController.text)
+                              .then((value) => {
+                                    if (value != null)
+                                      {
+                                        setState(() {
+                                          Navigator.pop(context);
+                                          Flushbar(
+                                            message: "Berhasil Registrasi",
+                                            duration: Duration(seconds: 2),
+                                            backgroundColor: Colors.greenAccent,
+                                            flushbarPosition:
+                                                FlushbarPosition.TOP,
+                                          ).show(context);
+                                        })
+                                      }
+                                    else if (value == null)
+                                      {
+                                        Flushbar(
+                                          message:
+                                              "Check Your Field Before Register",
+                                          duration: Duration(seconds: 5),
+                                          backgroundColor: Colors.redAccent,
+                                          flushbarPosition:
+                                              FlushbarPosition.TOP,
+                                        ).show(context)
+                                      }
+                                  });
+                        },
+                        child: Text("Daftar")),
                   ),
                 ],
               ),
